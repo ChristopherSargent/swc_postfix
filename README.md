@@ -121,14 +121,12 @@ Save
 12. Test email received
 
 ![Screenshot](resources/awx02testemail.png)
-
-# Tests
+# Manual Tests
 1. openssl s_client -connect mail02.cas.local:587 -starttls smtp
 * run on VM
 2. docker exec -it tools_postfix_1 bash
 3. echo -e "Subject: Test Email from Postfix Container\n\nThis is a test email sent from the Postfix container." | sendmail -v cas2.0@protonmail.com
 * run from postfix container
-
 # Set outgoing port to 587
 1. docker exec -it tools_postfix_1 bash
 2. vim /etc/postfix/transport
