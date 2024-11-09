@@ -121,6 +121,30 @@ Save
 12. Test email received
 
 ![Screenshot](resources/awx02testemail.png)
+### Commit above changes to tools_awx_1 container
+* on awx VM
+13. docker ps
+```
+CONTAINER ID   IMAGE                              COMMAND                  CREATED      STATUS      PORTS                                                                                                                                                                                                                                                                                                                                                                                  NAMES
+188ed4ec0c47   tools_awx_1:latest                 "/entrypoint.sh laun…"   4 days ago   Up 2 days   0.0.0.0:2222->2222/tcp, :::2222->2222/tcp, 0.0.0.0:6899->6899/tcp, :::6899->6899/tcp, 0.0.0.0:7899-7999->7899-7999/tcp, :::7899-7999->7899-7999/tcp, 0.0.0.0:8013->8013/tcp, :::8013->8013/tcp, 0.0.0.0:8080->8080/tcp, :::8080->8080/tcp, 22/tcp, 0.0.0.0:9888->9888/tcp, :::9888->9888/tcp, 0.0.0.0:3000->3001/tcp, [::]:3000->3001/tcp, 0.0.0.0:443->8043/tcp, [::]:443->8043/tcp   tools_awx_1
+c8e0a6ccbdbd   quay.io/sclorg/postgresql-15-c9s   "container-entrypoin…"   4 days ago   Up 2 days   0.0.0.0:5441->5432/tcp, [::]:5441->5432/tcp                                                                                                                                                                                                                                                                                                                                            tools_postgres_1
+2b3140189197   redis:latest                       "redis-server /usr/l…"   4 days ago   Up 2 days   6379/tcp                                                                                                                                                                                                                                                                                                                                                                               tools_redis_1
+38750153e3fa   registry:2                         "/entrypoint.sh /etc…"   4 days ago   Up 2 days   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp                                                                                                                                                                                                                                                                                                                                              tools_registry_1
+```
+14. docker image ls
+```
+REPOSITORY                         TAG       IMAGE ID       CREATED         SIZE
+tools_awx_1                        latest    03a50c50c2ca   4 days ago      4.57GB
+172.18.0.103:5000/awx-ee           latest    e6746a400403   4 days ago      2.31GB
+quay.io/ansible/awx-ee             latest    e6746a400403   4 days ago      2.31GB
+ghcr.io/ansible/awx_devel          devel     783d8506e5c7   5 days ago      2.07GB
+quay.io/sclorg/postgresql-15-c9s   latest    2e03bd7220a4   10 days ago     372MB
+redis                              latest    f02a7f566928   5 weeks ago     117MB
+registry                           2         75ef5b734af4   13 months ago   25.4MB
+```
+15. docker commit tools_awx_1 tools_awx_1:latest
+
+![Screenshot](resources/awx_1_tools.png)
 # Manual Tests
 1. openssl s_client -connect mail02.cas.local:587 -starttls smtp
 * run on VM
