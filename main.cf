@@ -1,0 +1,50 @@
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+compatibility_level = 2
+
+# Enable TLS for outgoing mail
+smtp_tls_security_level = may
+smtp_tls_note_starttls_offer = yes
+
+# Enable TLS for incoming mail
+smtpd_tls_cert_file = /etc/ssl/certs/postfix.pem
+smtpd_tls_key_file = /etc/ssl/private/postfix.key
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+
+# Enable SASL authentication
+#smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+#smtpd_sasl_auth_enable = yes
+#smtpd_recipient_restrictions = permit_sasl_authenticated,permit_mynetworks,reject_unauth_destination
+
+# Adjust smtpd_recipient_restrictions to remove SASL requirement
+smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+
+# Optional: Use strong ciphers and protocols
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+smtpd_tls_mandatory_ciphers = medium
+smtpd_tls_exclude_ciphers = aNULL, MD5
+smtp_tls_loglevel = 1
+
+#smtp_tls_CApath=/etc/ssl/certs
+#smtp_tls_security_level=may
+#smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = mail02.cas.local
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+#myorigin = /etc/mailname
+mydestination = $myhostname, mail02.cas.local, localhost.localdomain, localhost
+relayhost =
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.18.0.0/24 
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+maillog_file = /var/log/mail.log
