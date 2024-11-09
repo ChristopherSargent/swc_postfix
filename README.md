@@ -8,37 +8,10 @@
 1. ssh cas@172.18.0.17
 * nuc03.cas.local
 2. sudo -i
-3. cd /home/cas/Desktop/nuc03_git_projects/swc_postfix
-4. vim Dockerfile
-```
-# Use Ubuntu as the base image
-FROM ubuntu:22.04
-
-# Install necessary packages
-RUN echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections && \
-    DEBIAN_FRONTEND=noninteractive apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y postfix net-tools dovecot-core dovecot-imapd dovecot-pop3d openssl vim iputils-ping 
-
-# Copy Postfix configuration files
-COPY main.cf /etc/postfix/main.cf
-COPY master.cf /etc/postfix/master.cf
-COPY dovecot.conf /etc/dovecot/dovecot.conf
-
-# Copy SSL certificates
-COPY ssl/postfix.pem /etc/ssl/certs/postfix.pem
-COPY ssl/postfix.key /etc/ssl/private/postfix.key
-
-# Set permissions for SSL certificates
-RUN chmod 600 /etc/ssl/private/postfix.key
-
-# Expose necessary ports
-EXPOSE 25 465 587
-
-# Start Postfix and Dovecot services
-CMD ["sh", "-c", "service postfix start && service dovecot start && tail -f /var/log/mail.log"]
-
-```
+3. git clone git@github.com:ChristopherSargent/swc_postfix.git
+4. cd swc_postfix
 5. vim main.cf
+* Note #Update here comments
 ```
 smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
 biff = no
@@ -78,44 +51,36 @@ smtp_tls_loglevel = 1
 #smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = mail02.cas.local
+myhostname = mail02.cas.local #Update here
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 #myorigin = /etc/mailname
-mydestination = $myhostname, mail02.cas.local, localhost.localdomain, localhost
+mydestination = $myhostname, mail02.cas.local, localhost.localdomain, localhost #Update here
 relayhost =
-mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.18.0.0/24
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 172.18.0.0/24 #Update here
 mailbox_size_limit = 0
 recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = all
 maillog_file = /var/log/mail.log
-
 ```
-6. vim dovecot.conf
-```
-# Example Dovecot configuration
-#protocols = imap pop3 lmtp
-ssl_cert = </etc/ssl/certs/postfix.pem
-ssl_key = </etc/ssl/private/postfix.key
-```
-7. mkdir ssl && cd ssl && openssl req -new -x509 -days 365 -nodes -out postfix.pem -keyout postfix.key
-8. cd ..
-9. docker build -f Dockerfile -t swc_postfix:1109202401 .
-10. docker network create --subnet=10.1.1.0/24 tools_postfix_network
-11. docker run -d --name tools_postfix_1 --network tools_postfix_network -p 25:25 -p 465:465 -p 587:587 swc_postfix:1109202401
-12. echo "172.18.0.17 mail02.cas.local" >> /etc/hosts
+6. mkdir ssl && cd ssl && openssl req -new -x509 -days 365 -nodes -out postfix.pem -keyout postfix.key
+7. cd ..
+8. docker build -f Dockerfile -t swc_postfix:1109202401 .
+9. docker network create --subnet=10.1.1.0/24 tools_postfix_network
+10. docker run -d --name tools_postfix_1 --network tools_postfix_network -p 25:25 -p 465:465 -p 587:587 swc_postfix:1109202401
+11. echo "172.18.0.17 mail02.cas.local" >> /etc/hosts
 
-# Copy certs to AWX02
+# Copy certs to awx02.cas.local
 
-# Update trusted cert on awx02 vm and tools_awx_1 container
+### Update trusted cert on awx02 vm and tools_awx_1 container
 * Ubuntu 22.04 VM
 1. scp ssl/postfix.pem cas@172.18.0.35:
 2. ssh cas@172.18.0.35
 3. sudo -i 
 4. echo "172.18.0.17 mail02.cas.local" >> /etc/hosts
 5. docker exec tools_awx_1 echo "172.18.0.17 mail02.cas.local" >> /etc/hosts
-# Update trust Ubuntu
+### Update trust Ubuntu
 6. cp /home/cas/postfix.pem /usr/local/share/ca-certificates/postfix.crt
 7. update-ca-certificates
 ```
@@ -125,14 +90,14 @@ rehash: warning: skipping ca-certificates.crt,it does not contain exactly one ce
 Running hooks in /etc/ca-certificates/update.d...
 done.
 ```
-# Copy cert and update trust (Centos 9 stream) tools_awx_1 container
+### Copy cert and update trust (Centos 9 stream) tools_awx_1 container
 8. docker cp /home/cas/postfix.pem  tools_awx_1:/etc/pki/ca-trust/source/anchors/postfix.crt
 ```
 Successfully copied 3.07kB to tools_awx_1:/etc/pki/ca-trust/source/anchors/postfix.crt
 ```
 9. docker exec -it -u:0 tools_awx_1 update-ca-trust
 
-# Set up notification in awx UI
+### Set up notification in awx UI
 10. https://172.18.0.35 > Administration > Notifiers > Create notifier > 
 ```
 Name = swc_mail02_notifier
@@ -147,6 +112,15 @@ Select TLS
 Save
 ```
 
+![Screenshot](resources/awx02notifier.png)
+
+11. Select test
+
+![Screenshot](resources/awx02test.png)
+
+12. Test email received
+
+![Screenshot](resources/awx02testemail.png)
 
 # Tests
 1. openssl s_client -connect mail02.cas.local:587 -starttls smtp
