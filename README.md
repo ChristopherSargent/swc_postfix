@@ -1,6 +1,6 @@
 ![alt text](swclogo.jpg)
 # swc_postfix
-* This repository contains steps to build a containerized postfix deployment to act as a smtp relay. For any additional details or inquiries, please contact me at christopher.sargent@sargentwalker.io.
+* This repository contains steps to build a containerized postfix deployment to act as an smtp relay. For any additional details or inquiries, please contact me at christopher.sargent@sargentwalker.io.
 * Tested on Ubuntu 22.04 VM
 * deploy mail02.cas.local ubuntu 22.04 VM to run 
 
