@@ -47,4 +47,5 @@ mailbox_size_limit = 0
 recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = all
-maillog_file = /var/log/mail.log #Enable this and line 25 of Dockerfile tail -f /var/log/mail.log to get mail log via docker logs command against container
+#Enable the below line and update line 25 of Dockerfile tail -f /var/log/mail.log to get mail log via docker logs command against container
+maillog_file = /var/log/mail.log
