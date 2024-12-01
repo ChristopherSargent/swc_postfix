@@ -156,13 +156,77 @@ registry                           2         75ef5b734af4   13 months ago   25.4
 2. vim /etc/postfix/transport
 ```
 protonmail.com smtp:[mail.protonmail.ch]:587
-gmail.com      smtp:[smtp.gmail.com]:587
-outlook.com    smtp:[smtp.office365.com]:587
 ```
 3. postmap /etc/postfix/transport
-4. vim /etc/postfix/main.cf
+4. cd /etc/postfix && mv main.cf main.cf.12012024
+5. vim /etc/postfix/main.cf
 * add to the end
 ```
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+compatibility_level = 2
+
+# Enable TLS for outgoing mail
+smtp_tls_note_starttls_offer = yes
+
+# Enable TLS for incoming mail
+smtpd_tls_cert_file = /etc/ssl/certs/postfix.pem
+smtpd_tls_key_file = /etc/ssl/private/postfix.key
+smtpd_tls_auth_only = yes
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+
+# Enable SASL authentication
+smtpd_sasl_path = private/auth
+
+# Adjust smtpd_recipient_restrictions to remove SASL requirement
+smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+
+# Optional: Use strong ciphers and protocols
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+smtpd_tls_mandatory_ciphers = medium
+smtpd_tls_exclude_ciphers = aNULL, MD5
+smtp_tls_loglevel = 1
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = smtp01.swc.io
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = $myhostname, smtp01.swc.io, localhost.localdomain, localhost
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 188.40.189.32/27 95.216.127.40/29 65.109.78.150 46.4.105.241 10.1.5.0/24
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+#Enable the below line and update line 25 of Dockerfile tail -f /var/log/mail.log to get mail log via docker logs command against container
+maillog_file = /var/log/mail.log
+transport_maps = hash:/etc/postfix/transport
+#Add sasl and google relay
+relayhost = [smtp-relay.gmail.com]:587
+smtp_sasl_security_options = noanonymous
+smtp_tls_security_level = encrypt
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+inet_protocols = ipv4
 transport_maps = hash:/etc/postfix/transport
 ```
-5. service postfix restart
+6. service postfix reload
+```
+postfix: Postfix is running with backwards-compatible default settings
+postfix: See http://www.postfix.org/COMPATIBILITY_README.html for details
+postfix: To disable backwards compatibility use "postconf compatibility_level=3.6" and "postfix reload"
+postfix/postfix-script: refreshing the Postfix mail system
+```
+7. echo -e "Subject: Test Email from smtp01.swc.io Postfix Container." | sendmail -v christopher.sargent@sargentwalker.io && tail -f /var/log/mail.log
+```
+Dec 01 17:53:22 smtp01 postfix/pickup[327]: 1DCB91C2315: uid=0 from=<root>
+Dec 01 17:53:22 smtp01 postfix/cleanup[345]: 1DCB91C2315: message-id=<20241201175322.1DCB91C2315@smtp01.swc.io>
+Dec 01 17:53:22 smtp01 postfix/qmgr[326]: 1DCB91C2315: from=<root@smtp01.swc.io>, size=302, nrcpt=1 (queue active)
+Dec 01 17:53:22 smtp01 postfix/smtp[349]: Trusted TLS connection established to smtp-relay.gmail.com[74.125.128.28]:587: TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256
+Dec 01 17:53:22 smtp01 postfix/smtp[349]: 1DCB91C2315: to=<christopher.sargent@sargentwalker.io>, relay=smtp-relay.gmail.com[74.125.128.28]:587, delay=0.36, delays=0.02/0.04/0.15/0.14, dsn=2.0.0, status=sent (250 2.0.0 OK  1733075602 ffacd0b85a97d-385ccd68a77sm336259f8f.78 - gsmtp)
+Dec 01 17:53:22 smtp01 postfix/cleanup[345]: 7622F1C2319: message-id=<20241201175322.7622F1C2319@smtp01.swc.io>
+Dec 01 17:53:22 smtp01 postfix/qmgr[326]: 7622F1C2319: from=<>, size=2150, nrcpt=1 (queue active)
+Dec 01 17:53:22 smtp01 postfix/bounce[350]: 1DCB91C2315: sender delivery status notification: 7622F1C2319
+Dec 01 17:53:22 smtp01 postfix/qmgr[326]: 1DCB91C2315: removed
+Dec 01 17:53:22 smtp01 postfix/local[352]: 7622F1C2319: to=<root@smtp01.swc.io>, relay=local, delay=0.02, delays=0/0.01/0/0, dsn=2.0.0, status=sent (delivered to mailbox)
+Dec 01 17:53:22 smtp01 postfix/qmgr[326]: 7622F1C2319: removed
+```
