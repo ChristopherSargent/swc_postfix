@@ -154,7 +154,7 @@ registry                           2         75ef5b734af4   13 months ago   25.4
 # Set outgoing port to 587
 1. docker exec -it tools_postfix_1 bash
 2. vim /etc/postfix/transport
-* Follow steps here to set up ip whitelisting for auth for gmail smtp [cmail.smtp.relay.config](https://apps.google.com/supportwidget/articlehome?hl=en&article_url=https%3A%2F%2Fsupport.google.com%2Fa%2Fanswer%2F2956491%3Fhl%3Den&assistant_id=generic-unu&product_context=2956491&product_name=UnuFlow&trigger_context=a
+* Follow steps here to set up ip whitelisting for auth for gmail smtp [smtp.gmail.relay.config](https://apps.google.com/supportwidget/articlehome?hl=en&article_url=https%3A%2F%2Fsupport.google.com%2Fa%2Fanswer%2F2956491%3Fhl%3Den&assistant_id=generic-unu&product_context=2956491&product_name=UnuFlow&trigger_context=a
 )
 ```
 gmail.com      smtp:[smtp.gmail.com]:587
